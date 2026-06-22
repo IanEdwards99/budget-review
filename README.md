@@ -102,6 +102,7 @@ Current Fun budget split:
 Rules:
 
 - Wise fun spend is assigned to `Ian - Fun`
+- Wise `Shopping`, `Personal care`, eating out, entertainment, trips, cash, and general card spend are treated as `Ian - Fun`
 - Leila fun-money transfers are assigned to `Leila - Fun`
 - ABN-to-Wise top-ups and Wise-to-ABN repayments are `Internal Transfer` and excluded from expenses to avoid double-counting
 - Credits/refunds are shown in the income/credits summary, not in expense totals
@@ -211,4 +212,3 @@ python -m venv .venv
 ```
 
 On Mac/Linux, use `.venv/bin/python` instead of `.venv/Scripts/python`.
-

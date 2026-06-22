@@ -104,6 +104,9 @@ def category_from_text(text: str, source_category: str = "") -> tuple[str, bool,
     if "leila fun money" in t or "leila siljeur" in t:
         return "Leila - Fun", True, "Leila fun-money allocation from joint account"
 
+    if source_category in {"Shopping", "Personal care", "Eating out", "Entertainment", "Trips", "Cash", "General"}:
+        return "Ian - Fun", True, "Wise spend assigned to Ian - Fun"
+
     rules = [
         ("Rent", ["project 434", "nieuwe fellenoord"]),
         ("Internet (Odido)", ["odido internet", "odido int", "yll"]),
@@ -139,10 +142,6 @@ def category_from_text(text: str, source_category: str = "") -> tuple[str, bool,
         return "Transport", True, "Wise category fallback"
     if source_category in {"Investments"}:
         return "Investments", True, "Wise category fallback"
-    if source_category in {"Shopping", "Personal care"}:
-        return "Other Shopping", True, "Wise category fallback"
-    if source_category in {"Eating out", "Entertainment", "Trips", "Cash", "General"}:
-        return "Ian - Fun", True, "Wise category fallback"
 
     fun_terms = ["booking", "hotel", "trip", "eating out", "entertainment", "starbucks", "coffee", "cinema", "vue", "restaurant", "mcdonald", "burger", "cash", "tikkie", "vriendenloterij", "kiosk", "june tea", "ijssalon", "jolie spellen"]
     if any(term in t for term in fun_terms):
