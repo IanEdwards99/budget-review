@@ -82,7 +82,7 @@ Each generated workbook contains:
 
 - `Settings 2026`: editable budgets and income assumptions
 - `Raw Txns 2026`: normalized ABN/Wise transactions with category and include/exclude columns
-- `Review <Month>`: budget vs actual summary plus transactions grouped by category
+- `Review <Month>`: budget vs actual summary, income/credits grouped by source category, and expenses grouped by budget category
 
 The review tab is formula-driven:
 
@@ -91,6 +91,10 @@ The review tab is formula-driven:
 - Income uses salary and credit/refund rows from `Raw Txns 2026`
 - Category variance/status recalculates automatically
 - Transaction detail blocks have per-category subtotal formulas
+
+`Actual cash left after expenses` is total income/credits minus actual expenses.
+
+`Actual cash vs budget plan` compares that actual cash left with the cash that would have been left if expenses had exactly matched the monthly budget. Positive means spending came in under plan; negative means expenses were over plan.
 
 ## Budget Rules
 

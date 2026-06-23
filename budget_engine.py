@@ -341,7 +341,7 @@ def build_workbook(rows: list[dict[str, Any]], period: Period, output_path: Path
         table(raw_ws, f"A1:N{raw_ws.max_row}", "RawTransactions2026")
     raw_ws.freeze_panes = "A2"
 
-    set_widths(review, {"A": 28, "B": 14, "C": 14, "D": 14, "E": 14, "F": 18, "G": 18, "H": 58})
+    set_widths(review, {"A": 28, "B": 14, "C": 14, "D": 14, "E": 18, "F": 18, "G": 18, "H": 58})
     review.merge_cells("A1:H1")
     review["A1"] = f"Household Budget Review | {period.name}"
     review["A1"].fill = fill(COLORS["dark"])
@@ -361,8 +361,8 @@ def build_workbook(rows: list[dict[str, Any]], period: Period, output_path: Path
         ("Ian salary actual", "=SUMIFS('Raw Txns 2026'!$I:$I,'Raw Txns 2026'!$B:$B,$B$3,'Raw Txns 2026'!$J:$J,\"Salary\",'Raw Txns 2026'!$K:$K,1)", "Monthly expense budget", f"=SUM(B{category_start_row}:B{category_end_row})"),
         ("Leila salary assumption", f"='Settings 2026'!B{leila_row + 2}", "Actual expenses", f"=SUM(C{category_start_row}:C{category_end_row})"),
         ("Other credits/refunds", "=SUMIFS('Raw Txns 2026'!$I:$I,'Raw Txns 2026'!$B:$B,$B$3,'Raw Txns 2026'!$J:$J,\"Other Income / Refunds\",'Raw Txns 2026'!$K:$K,1)", "Expense variance", "=E4-E5"),
-        ("Total income/credits", "=SUM(B4:B6)", "Budget net", "=B7-E4"),
-        ("Actual net after expenses", "=B7-E5", "Net vs budget", "=B8-E7"),
+        ("Total income/credits", "=SUM(B4:B6)", "Cash left if on budget", "=B7-E4"),
+        ("Actual cash left after expenses", "=B7-E5", "Actual cash vs budget plan", "=B8-E7"),
     ]
     for offset, row in enumerate(summary_rows, 4):
         review.cell(offset, 1, row[0])
@@ -374,6 +374,10 @@ def build_workbook(rows: list[dict[str, Any]], period: Period, output_path: Path
             review.cell(offset, col).font = Font(bold=True)
         for col in [2, 5]:
             review.cell(offset, col).number_format = "#,##0.00;(#,##0.00);-"
+    review.merge_cells("A9:H9")
+    review["A9"] = "Actual cash vs budget plan compares actual cash left after expenses with cash left if expenses had matched the monthly budget. Positive means spending came in under plan; negative means expenses were over plan."
+    review["A9"].font = Font(italic=True, color="666666")
+    review["A9"].alignment = Alignment(wrap_text=True)
 
     header_row = 11
     review.append([])
@@ -405,6 +409,54 @@ def build_workbook(rows: list[dict[str, Any]], period: Period, output_path: Path
         review.cell(total_row, col).border = thin_border(COLORS["border"])
 
     detail_start = 29
+    income_rows = [r for r in rows if r["period"] == period.name and r["include"] == 1 and r["credit"] > 0]
+    income_headers = ["Date", "Source", "Merchant", "Credit", "Category", "Notes", "Description", "Source ID"]
+    review.merge_cells(start_row=detail_start, start_column=1, end_row=detail_start, end_column=8)
+    review.cell(detail_start, 1, "Income and credits included in totals")
+    review.cell(detail_start, 1).fill = fill(COLORS["dark"])
+    review.cell(detail_start, 1).font = Font(bold=True, color="FFFFFF")
+    row_idx = detail_start + 1
+    for category in ["Salary", "Other Income / Refunds"]:
+        category_rows = sorted(
+            [r for r in income_rows if r["category"] == category],
+            key=lambda r: (r["date"], -r["credit"], r["merchant"]),
+        )
+        if not category_rows:
+            continue
+
+        review.merge_cells(start_row=row_idx, start_column=1, end_row=row_idx, end_column=8)
+        review.cell(row_idx, 1, f"{category} | {len(category_rows)} transactions | EUR {sum(r['credit'] for r in category_rows):,.2f}")
+        review.cell(row_idx, 1).fill = fill(COLORS["green"])
+        review.cell(row_idx, 1).font = Font(bold=True, color="1F3864")
+        review.cell(row_idx, 1).border = thin_border(COLORS["border"])
+        row_idx += 1
+
+        for col, heading in enumerate(income_headers, 1):
+            review.cell(row_idx, col, heading)
+        style_header(review, row_idx, 1, 8)
+        row_idx += 1
+
+        first_txn_row = row_idx
+        for item in category_rows:
+            values = [item["date"], item["source"], item["merchant"], item["credit"], item["category"], item["notes"], item["description"][:120], item["source_id"]]
+            for col, value in enumerate(values, 1):
+                review.cell(row_idx, col, value)
+                review.cell(row_idx, col).border = thin_border()
+                if row_idx % 2 == 0:
+                    review.cell(row_idx, col).fill = fill(COLORS["stripe"])
+            review.cell(row_idx, 4).number_format = "#,##0.00"
+            row_idx += 1
+
+        review.cell(row_idx, 1, "Subtotal")
+        review.cell(row_idx, 4, f"=SUM(D{first_txn_row}:D{row_idx - 1})")
+        for col in range(1, 9):
+            review.cell(row_idx, col).fill = fill(COLORS["grey"])
+            review.cell(row_idx, col).font = Font(bold=True)
+            review.cell(row_idx, col).border = thin_border(COLORS["border"])
+        review.cell(row_idx, 4).number_format = "#,##0.00"
+        row_idx += 2
+
+    detail_start = row_idx + 1
     review.merge_cells(start_row=detail_start, start_column=1, end_row=detail_start, end_column=8)
     review.cell(detail_start, 1, "Transactions included in expense totals")
     review.cell(detail_start, 1).fill = fill(COLORS["dark"])
