@@ -9,6 +9,7 @@ from typing import Any
 
 import pandas as pd
 from openpyxl import Workbook, load_workbook
+from openpyxl.formatting.rule import FormulaRule
 from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
 from openpyxl.utils import get_column_letter
 from openpyxl.worksheet.table import Table, TableStyleInfo
@@ -399,6 +400,15 @@ def build_workbook(rows: list[dict[str, Any]], period: Period, output_path: Path
                 review.cell(idx, col).fill = fill(COLORS["stripe"])
         for col in [2, 3, 4]:
             review.cell(idx, col).number_format = "#,##0.00;(#,##0.00);-"
+    category_range = f"A{category_start_row}:F{category_end_row}"
+    review.conditional_formatting.add(
+        category_range,
+        FormulaRule(formula=[f'OR($E{category_start_row}="Over",$E{category_start_row}="Unbudgeted")'], fill=fill(COLORS["red"])),
+    )
+    review.conditional_formatting.add(
+        category_range,
+        FormulaRule(formula=[f'OR($E{category_start_row}="Under",$E{category_start_row}="OK")'], fill=fill(COLORS["green"])),
+    )
     review.cell(total_row, 1, "TOTAL")
     review.cell(total_row, 2, f"=SUM(B{category_start_row}:B{category_end_row})")
     review.cell(total_row, 3, f"=SUM(C{category_start_row}:C{category_end_row})")

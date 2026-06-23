@@ -90,6 +90,7 @@ The review tab is formula-driven:
 - Actuals use `SUMIFS` against `Raw Txns 2026`
 - Income uses salary and credit/refund rows from `Raw Txns 2026`
 - Category variance/status recalculates automatically
+- Category overview rows highlight red for `Over` or `Unbudgeted`, and green for `Under` or `OK`
 - Transaction detail blocks have per-category subtotal formulas
 
 `Actual cash left after expenses` is total income/credits minus actual expenses.
@@ -168,6 +169,8 @@ If you use a new label, such as `Review July 2026`, a new review tab is created.
 This avoids stale rows, duplicate transaction imports, and broken monthly formulas.
 
 The Apps Script sync writes values and formulas, freezes rows, and auto-resizes columns. For the full Excel formatting exactly as generated, use the downloaded `.xlsx` workbook or upload/import that workbook to Google Sheets manually.
+
+If this repository updates `google_apps_script/Code.gs`, paste the updated script into Apps Script and redeploy the web app so Google Sheets sync gets the newest formatting behavior.
 
 ## Google Sheet Housekeeping
 
