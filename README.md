@@ -64,7 +64,7 @@ Wise exports must keep Wise's default column names, including:
    - period label, for example `July 2026`
    - start date
    - end date
-   - data-through date
+   - data-through date: the latest transaction date included in the files you are uploading
 8. Click `Generate review`.
 9. Download the workbook, or sync to Google Sheets if configured.
 
@@ -98,6 +98,10 @@ Current Fun budget split:
 
 - `Ian - Fun`: EUR 250/month
 - `Leila - Fun`: EUR 250/month
+
+Current income assumption:
+
+- `Monthly Salary (Leila)`: EUR 0/month
 
 Rules:
 

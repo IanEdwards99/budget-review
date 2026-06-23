@@ -33,7 +33,7 @@ BUDGET = {
 
 INCOME_BUDGET = {
     "Monthly Salary (Ian)": 3500.00,
-    "Monthly Salary (Leila)": 1550.00,
+    "Monthly Salary (Leila)": 0.00,
 }
 
 UTILITY_CATEGORIES = ["Salary", "Other Income / Refunds", "Internal Transfer"]

@@ -113,6 +113,12 @@ def index():
       gap: 8px;
       background: #fbfdff;
       cursor: pointer;
+      transition: border-color .15s ease, background .15s ease, box-shadow .15s ease;
+    }
+    .drop.dragover {
+      border-color: var(--blue-2);
+      background: #eef6ff;
+      box-shadow: 0 0 0 3px rgba(46, 117, 182, .12);
     }
     .drop strong { color: var(--blue); }
     .drop input { display: none; }
@@ -145,6 +151,7 @@ def index():
     }
     button:disabled { opacity: .55; cursor: wait; }
     .hint { color: var(--muted); font-size: 12px; }
+    .help { display: block; color: var(--muted); font-size: 12px; margin-top: 5px; }
     .result { margin-top: 18px; display: none; }
     .result.show { display: block; }
     .ok { color: var(--green); font-weight: 700; }
@@ -175,19 +182,19 @@ def index():
         <div class="dropgrid">
           <label class="drop">
             <strong>ABN AMRO export</strong>
-            <span class="hint">.xls or .xlsx with transactiondate, amount, description</span>
+            <span class="hint">Drop the ABN file here: .xls or .xlsx with transactiondate, amount, description</span>
             <input required type="file" name="abn" accept=".xls,.xlsx">
             <span class="file-name" data-for="abn">No file selected</span>
           </label>
           <label class="drop">
             <strong>Wise transaction history</strong>
-            <span class="hint">CSV or Excel export from Wise</span>
+            <span class="hint">Drop the Wise file here: CSV or Excel export from Wise</span>
             <input required type="file" name="wise" accept=".csv,.xls,.xlsx">
             <span class="file-name" data-for="wise">No file selected</span>
           </label>
           <label class="drop wide">
             <strong>Existing workbook template</strong>
-            <span class="hint">Optional. Leave empty to create a clean workbook.</span>
+            <span class="hint">Optional. Drop an existing .xlsx workbook here, or leave empty.</span>
             <input type="file" name="template" accept=".xlsx">
             <span class="file-name" data-for="template">No file selected</span>
           </label>
@@ -200,7 +207,7 @@ def index():
           <label class="wide"><span>Tab label</span><input name="label" type="text" value="June 2026" required></label>
           <label><span>Start</span><input name="start" type="date" value="2026-05-25" required></label>
           <label><span>End</span><input name="end" type="date" value="2026-06-24" required></label>
-          <label><span>Data through</span><input name="through" type="date" value="2026-06-20" required></label>
+          <label><span>Data through</span><input name="through" type="date" value="2026-06-20" required><small class="help">The latest transaction date included in your files. If the month is unfinished, this helps the review show whether spending is on pace.</small></label>
         </div>
 
         <h2 style="margin-top:18px">Google Sheets sync</h2>
@@ -221,10 +228,39 @@ def index():
   </main>
 
   <script>
+    function updateFileName(input) {
+      const name = input.files[0] ? input.files[0].name : 'No file selected';
+      document.querySelector(`[data-for="${input.name}"]`).textContent = name;
+    }
+
     document.querySelectorAll('input[type=file]').forEach(input => {
-      input.addEventListener('change', () => {
-        const name = input.files[0] ? input.files[0].name : 'No file selected';
-        document.querySelector(`[data-for="${input.name}"]`).textContent = name;
+      input.addEventListener('change', () => updateFileName(input));
+    });
+
+    document.querySelectorAll('.drop').forEach(drop => {
+      const input = drop.querySelector('input[type=file]');
+      ['dragenter', 'dragover'].forEach(eventName => {
+        drop.addEventListener(eventName, event => {
+          event.preventDefault();
+          event.stopPropagation();
+          drop.classList.add('dragover');
+        });
+      });
+      ['dragleave', 'dragend'].forEach(eventName => {
+        drop.addEventListener(eventName, event => {
+          event.preventDefault();
+          event.stopPropagation();
+          drop.classList.remove('dragover');
+        });
+      });
+      drop.addEventListener('drop', event => {
+        event.preventDefault();
+        event.stopPropagation();
+        drop.classList.remove('dragover');
+        if (event.dataTransfer.files.length) {
+          input.files = event.dataTransfer.files;
+          updateFileName(input);
+        }
       });
     });
 
