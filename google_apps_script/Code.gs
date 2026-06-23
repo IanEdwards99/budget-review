@@ -42,10 +42,20 @@ function doPost(e) {
       .createTextOutput(JSON.stringify({ ok: true, message: "Google Sheet updated" }))
       .setMimeType(ContentService.MimeType.JSON);
   } catch (err) {
+    const message = friendlyErrorMessage(err);
     return ContentService
-      .createTextOutput(JSON.stringify({ ok: false, message: err.message }))
+      .createTextOutput(JSON.stringify({ ok: false, message }))
       .setMimeType(ContentService.MimeType.JSON);
   }
+}
+
+function friendlyErrorMessage(err) {
+  const message = err && err.message ? err.message : String(err);
+  const lower = message.toLowerCase();
+  if (lower.includes("office file") || lower.includes("not supported for this document")) {
+    return "Google sync failed: the target is an Excel/Office file in Drive, not a native Google Sheet. Open it in Google Sheets, choose File > Save as Google Sheets, then use the new Google Sheet URL.";
+  }
+  return message;
 }
 
 function applyReviewFormatting(sheet) {

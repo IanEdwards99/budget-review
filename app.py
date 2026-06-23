@@ -212,10 +212,10 @@ def index():
 
         <h2 style="margin-top:18px">Google Sheets sync</h2>
         <div class="fields">
-          <label class="wide"><span>Google Sheet URL or ID</span><input name="sheet_id" type="text" placeholder="https://docs.google.com/spreadsheets/d/..."></label>
+          <label class="wide"><span>Native Google Sheet URL or ID</span><input name="sheet_id" type="text" placeholder="https://docs.google.com/spreadsheets/d/..."><small class="help">Use a real Google Sheet, not an Excel .xlsx file opened in Google Drive. If needed, open the file in Sheets and use File > Save as Google Sheets first.</small></label>
           <label class="wide"><span>Apps Script Web App URL</span><input name="script_url" type="url" placeholder="https://script.google.com/macros/s/.../exec"></label>
         </div>
-        <div class="hint" style="margin-top:8px">Leave these blank to just download the workbook. Sync creates or replaces the named tabs in that spreadsheet; a new period label creates a new review tab.</div>
+        <div class="hint" style="margin-top:8px">Leave both sync fields blank to just download the workbook. To sync, fill both fields. Sync creates or replaces the named tabs in that spreadsheet; a new period label creates a new review tab.</div>
 
         <div class="actions">
           <button id="submit" type="submit">Generate review</button>
@@ -341,6 +341,11 @@ def generate():
 
         script_url = request.form.get("script_url", "").strip()
         sheet_id = request.form.get("sheet_id", "").strip()
+        if bool(script_url) != bool(sheet_id):
+            result["google_sync"] = {
+                "ok": False,
+                "message": "Google sync skipped: fill both the native Google Sheet URL/ID and the Apps Script Web App URL, or leave both blank.",
+            }
         if script_url and sheet_id:
             try:
                 sheet_names = ["Settings 2026", "Raw Txns 2026", result["review_sheet"]]
@@ -348,9 +353,11 @@ def generate():
                 result["google_sync"] = {
                     "ok": bool(sync_result.get("ok")),
                     "message": sync_result.get("message", "Sheets updated" if sync_result.get("ok") else "Apps Script returned no message"),
+                    "spreadsheet_id": parse_sheet_id(sheet_id),
+                    "tabs": sheet_names,
                 }
             except Exception as exc:
-                result["google_sync"] = {"ok": False, "message": str(exc)}
+                result["google_sync"] = {"ok": False, "message": str(exc), "spreadsheet_id": parse_sheet_id(sheet_id)}
 
         return jsonify(result)
     except Exception as exc:

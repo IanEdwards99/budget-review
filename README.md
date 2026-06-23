@@ -134,6 +134,8 @@ Downloading the workbook works immediately.
 
 Direct Google Sheets sync needs a one-time Apps Script setup because a local app cannot edit Google Drive files without permission.
 
+The target must be a native Google Sheets spreadsheet. A `.xlsx` / Office file stored in Google Drive and opened with Google Sheets preview cannot be overwritten tab-by-tab through Apps Script. Open the file in Google Sheets and choose `File > Save as Google Sheets`, then use the new native Sheet URL.
+
 ### One-Time Setup
 
 1. Open the target Google Sheet.
@@ -209,7 +211,8 @@ If formulas look wrong:
 If Google sync fails:
 
 - Confirm the Apps Script web app URL is deployed and accessible
-- Confirm the Google Sheet URL/ID is correct
+- Confirm the Google Sheet URL/ID is a native Google Sheet, not an Excel/Office file in Drive
+- Fill both sync fields: the native Google Sheet URL/ID and the Apps Script Web App URL
 - Re-authorize the Apps Script deployment if Google asks
 
 ## Development
