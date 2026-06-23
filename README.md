@@ -7,7 +7,7 @@ The intended user flow is:
 1. Export bank transactions.
 2. Open the local web app.
 3. Drag the files in.
-4. Download the generated workbook or sync selected tabs into Google Sheets.
+4. Download the generated workbook, create a new Google Sheet, or sync selected tabs into an existing Google Sheet.
 
 ## Quick Start
 
@@ -138,9 +138,13 @@ The target must be a native Google Sheets spreadsheet. A `.xlsx` / Office file s
 
 ### Which URLs To Paste
 
-The app has two different Google URL fields. Fill both to sync, or leave both blank to only download the workbook.
+The app has two different Google URL fields.
 
-Use this in `Native Google Sheet URL or ID`:
+- To create a new Google Sheet: paste only the `Apps Script Web App URL`.
+- To update an existing Google Sheet: paste both the `Apps Script Web App URL` and the `Native Google Sheet URL or ID`.
+- To only download the workbook: leave both fields blank.
+
+Use this in `Native Google Sheet URL or ID` only when you want to update an existing spreadsheet:
 
 ```text
 https://docs.google.com/spreadsheets/d/<SHEET_ID>/edit...
@@ -148,7 +152,7 @@ https://docs.google.com/spreadsheets/d/<SHEET_ID>/edit...
 
 This must be a native Google Sheet. If the file name still ends in `.xlsx`, or Google says it is an Office file, open it in Sheets and choose `File > Save as Google Sheets`. Then copy the URL of the newly created Google Sheet.
 
-Use this in `Apps Script Web App URL`:
+Use this in `Apps Script Web App URL` to create a new Google Sheet or update an existing one:
 
 ```text
 https://script.google.com/macros/s/<DEPLOYMENT_ID>/exec
@@ -171,7 +175,8 @@ google_apps_script/Code.gs
 6. Copy the deployed web app URL.
 7. Confirm the deployed URL ends in `/exec`.
 8. Paste that URL into the app's `Apps Script Web App URL` field.
-9. Paste the native Google Sheet URL or ID into the app's `Native Google Sheet URL or ID` field.
+9. To create a new Google Sheet, leave `Native Google Sheet URL or ID` blank.
+10. To update an existing Google Sheet, paste the native Google Sheet URL or ID into the app's `Native Google Sheet URL or ID` field.
 
 Keep the Apps Script web app URL private because it can update any spreadsheet ID you pass to it.
 
@@ -179,13 +184,15 @@ Keep the Apps Script web app URL private because it can update any spreadsheet I
 
 No. Sync does not append rows to the bottom of an existing sheet.
 
-It creates or replaces these named tabs in the target spreadsheet:
+When creating a new Google Sheet, it creates a new spreadsheet in the Drive of the Google account that deployed the Apps Script.
+
+When updating an existing Google Sheet, it creates or replaces these named tabs in the target spreadsheet:
 
 - `Settings 2026`
 - `Raw Txns 2026`
 - `Review <Month>`
 
-If `Review June 2026` already exists, it is replaced with the newly generated version.
+If `Review June 2026` already exists in the target spreadsheet, it is replaced with the newly generated version.
 
 If you use a new label, such as `Review July 2026`, a new review tab is created.
 
@@ -233,7 +240,8 @@ If Google sync fails:
 
 - Confirm the Apps Script web app URL is deployed and accessible
 - Confirm the Google Sheet URL/ID is a native Google Sheet, not an Excel/Office file in Drive
-- Fill both sync fields: the native Google Sheet URL/ID and the Apps Script Web App URL
+- To create a new Google Sheet, fill only the Apps Script Web App URL
+- To update an existing Google Sheet, fill both sync fields: the native Google Sheet URL/ID and the Apps Script Web App URL
 - Re-authorize the Apps Script deployment if Google asks
 
 ## Development

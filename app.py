@@ -32,9 +32,10 @@ def parse_sheet_id(text: str) -> str:
     return match.group(1) if match else text
 
 
-def post_to_apps_script(script_url: str, spreadsheet_id: str, workbook_path: Path, sheet_names: list[str]) -> dict:
+def post_to_apps_script(script_url: str, spreadsheet_id: str, workbook_path: Path, sheet_names: list[str], title: str) -> dict:
     payload = {
         "spreadsheetId": parse_sheet_id(spreadsheet_id),
+        "title": title,
         "sheets": workbook_payload_for_apps_script(workbook_path, sheet_names),
     }
     data = json.dumps(payload).encode("utf-8")
@@ -225,16 +226,16 @@ def index():
         <div class="steps">
           <ol>
             <li>Use a native Google Sheet URL that looks like <strong>docs.google.com/spreadsheets/d/...</strong>. If your file is an uploaded .xlsx, first open it in Sheets and choose <strong>File &gt; Save as Google Sheets</strong>.</li>
-            <li>Paste that native Sheet URL into <strong>Native Google Sheet URL or ID</strong>.</li>
+            <li>To update an existing Sheet, paste that native Sheet URL into <strong>Native Google Sheet URL or ID</strong>. To create a new Google Sheet instead, leave this field blank.</li>
             <li>Paste your Apps Script deployment URL, ending in <strong>/exec</strong>, into <strong>Apps Script Web App URL</strong>.</li>
-            <li>Fill both URL fields to sync, or leave both blank to only download the workbook.</li>
+            <li>Fill only the Apps Script URL to create a new Google Sheet, fill both URL fields to update an existing one, or leave both blank to only download the workbook.</li>
           </ol>
         </div>
         <div class="fields">
-          <label class="wide"><span>Native Google Sheet URL or ID</span><input name="sheet_id" type="text" placeholder="https://docs.google.com/spreadsheets/d/..."><small class="help">Use a real Google Sheet, not an Excel .xlsx file opened in Google Drive. If needed, open the file in Sheets and use File > Save as Google Sheets first.</small></label>
+          <label class="wide"><span>Native Google Sheet URL or ID</span><input name="sheet_id" type="text" placeholder="Optional: https://docs.google.com/spreadsheets/d/..."><small class="help">Optional. Leave blank to create a new Google Sheet. To update an existing file, use a real Google Sheet, not an Excel .xlsx file opened in Google Drive.</small></label>
           <label class="wide"><span>Apps Script Web App URL</span><input name="script_url" type="url" placeholder="https://script.google.com/macros/s/.../exec"></label>
         </div>
-        <div class="hint" style="margin-top:8px">Leave both sync fields blank to just download the workbook. To sync, fill both fields. Sync creates or replaces the named tabs in that spreadsheet; a new period label creates a new review tab.</div>
+        <div class="hint" style="margin-top:8px">Leave both sync fields blank to just download the workbook. Paste only the Apps Script URL to create a new Google Sheet. Paste both URLs to replace the named tabs in an existing native Google Sheet.</div>
 
         <div class="actions">
           <button id="submit" type="submit">Generate review</button>
@@ -298,7 +299,8 @@ def index():
         const response = await fetch('/generate', { method: 'POST', body: new FormData(form) });
         const payload = await response.json();
         if (!response.ok || !payload.ok) throw new Error(payload.error || 'Generation failed');
-        const sync = payload.google_sync ? `<p class="${payload.google_sync.ok ? 'ok' : 'bad'}">Google sync: ${payload.google_sync.message}</p>` : '';
+        const sheetLink = payload.google_sync && payload.google_sync.spreadsheet_url ? `<p><a class="download" href="${payload.google_sync.spreadsheet_url}" target="_blank" rel="noopener">Open Google Sheet</a></p>` : '';
+        const sync = payload.google_sync ? `<p class="${payload.google_sync.ok ? 'ok' : 'bad'}">Google sync: ${payload.google_sync.message}</p>${sheetLink}` : '';
         result.innerHTML = `
           <h2>Review generated</h2>
           <p><strong>${payload.review_sheet}</strong> contains ${payload.rows} source rows. Expenses: EUR ${payload.expense_total.toFixed(2)}. Credits: EUR ${payload.credits_total.toFixed(2)}.</p>
@@ -360,19 +362,20 @@ def generate():
 
         script_url = request.form.get("script_url", "").strip()
         sheet_id = request.form.get("sheet_id", "").strip()
-        if bool(script_url) != bool(sheet_id):
+        if sheet_id and not script_url:
             result["google_sync"] = {
                 "ok": False,
-                "message": "Google sync skipped: fill both the native Google Sheet URL/ID and the Apps Script Web App URL, or leave both blank.",
+                "message": "Google sync skipped: paste the Apps Script Web App URL too, or leave both sync fields blank.",
             }
-        if script_url and sheet_id:
+        if script_url:
             try:
                 sheet_names = ["Settings 2026", "Raw Txns 2026", result["review_sheet"]]
-                sync_result = post_to_apps_script(script_url, sheet_id, output_path, sheet_names)
+                sync_result = post_to_apps_script(script_url, sheet_id, output_path, sheet_names, f"Budget Review {period.name}")
                 result["google_sync"] = {
                     "ok": bool(sync_result.get("ok")),
                     "message": sync_result.get("message", "Sheets updated" if sync_result.get("ok") else "Apps Script returned no message"),
-                    "spreadsheet_id": parse_sheet_id(sheet_id),
+                    "spreadsheet_id": sync_result.get("spreadsheetId") or parse_sheet_id(sheet_id),
+                    "spreadsheet_url": sync_result.get("spreadsheetUrl"),
                     "tabs": sheet_names,
                 }
             except Exception as exc:

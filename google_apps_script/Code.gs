@@ -1,10 +1,14 @@
 function doPost(e) {
   try {
     const payload = JSON.parse(e.postData.contents);
-    if (!payload.spreadsheetId) throw new Error("Missing spreadsheetId");
     if (!payload.sheets || !Array.isArray(payload.sheets)) throw new Error("Missing sheets array");
 
-    const ss = SpreadsheetApp.openById(payload.spreadsheetId);
+    const createdNewSpreadsheet = !payload.spreadsheetId;
+    const ss = createdNewSpreadsheet
+      ? SpreadsheetApp.create(payload.title || "Budget Review")
+      : SpreadsheetApp.openById(payload.spreadsheetId);
+    const desiredSheetNames = payload.sheets.map(sheetPayload => sheetPayload.name);
+
     payload.sheets.forEach(sheetPayload => {
       const name = sheetPayload.name;
       const values = sheetPayload.values || [];
@@ -38,8 +42,17 @@ function doPost(e) {
       sheet.autoResizeColumns(1, Math.min(colCount, 12));
     });
 
+    if (createdNewSpreadsheet) {
+      removeUnusedDefaultSheets(ss, desiredSheetNames);
+    }
+
     return ContentService
-      .createTextOutput(JSON.stringify({ ok: true, message: "Google Sheet updated" }))
+      .createTextOutput(JSON.stringify({
+        ok: true,
+        message: createdNewSpreadsheet ? "New Google Sheet created" : "Google Sheet updated",
+        spreadsheetId: ss.getId(),
+        spreadsheetUrl: ss.getUrl()
+      }))
       .setMimeType(ContentService.MimeType.JSON);
   } catch (err) {
     const message = friendlyErrorMessage(err);
@@ -47,6 +60,14 @@ function doPost(e) {
       .createTextOutput(JSON.stringify({ ok: false, message }))
       .setMimeType(ContentService.MimeType.JSON);
   }
+}
+
+function removeUnusedDefaultSheets(ss, desiredSheetNames) {
+  ss.getSheets().forEach(sheet => {
+    if (ss.getSheets().length > 1 && desiredSheetNames.indexOf(sheet.getName()) === -1) {
+      ss.deleteSheet(sheet);
+    }
+  });
 }
 
 function friendlyErrorMessage(err) {
