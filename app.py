@@ -152,6 +152,17 @@ def index():
     button:disabled { opacity: .55; cursor: wait; }
     .hint { color: var(--muted); font-size: 12px; }
     .help { display: block; color: var(--muted); font-size: 12px; margin-top: 5px; }
+    .steps {
+      margin: 8px 0 12px;
+      padding: 10px 12px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: #fbfdff;
+      color: var(--muted);
+      font-size: 12px;
+    }
+    .steps ol { margin: 0; padding-left: 18px; }
+    .steps li + li { margin-top: 4px; }
     .result { margin-top: 18px; display: none; }
     .result.show { display: block; }
     .ok { color: var(--green); font-weight: 700; }
@@ -211,6 +222,14 @@ def index():
         </div>
 
         <h2 style="margin-top:18px">Google Sheets sync</h2>
+        <div class="steps">
+          <ol>
+            <li>Use a native Google Sheet URL that looks like <strong>docs.google.com/spreadsheets/d/...</strong>. If your file is an uploaded .xlsx, first open it in Sheets and choose <strong>File &gt; Save as Google Sheets</strong>.</li>
+            <li>Paste that native Sheet URL into <strong>Native Google Sheet URL or ID</strong>.</li>
+            <li>Paste your Apps Script deployment URL, ending in <strong>/exec</strong>, into <strong>Apps Script Web App URL</strong>.</li>
+            <li>Fill both URL fields to sync, or leave both blank to only download the workbook.</li>
+          </ol>
+        </div>
         <div class="fields">
           <label class="wide"><span>Native Google Sheet URL or ID</span><input name="sheet_id" type="text" placeholder="https://docs.google.com/spreadsheets/d/..."><small class="help">Use a real Google Sheet, not an Excel .xlsx file opened in Google Drive. If needed, open the file in Sheets and use File > Save as Google Sheets first.</small></label>
           <label class="wide"><span>Apps Script Web App URL</span><input name="script_url" type="url" placeholder="https://script.google.com/macros/s/.../exec"></label>

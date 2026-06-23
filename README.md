@@ -136,6 +136,26 @@ Direct Google Sheets sync needs a one-time Apps Script setup because a local app
 
 The target must be a native Google Sheets spreadsheet. A `.xlsx` / Office file stored in Google Drive and opened with Google Sheets preview cannot be overwritten tab-by-tab through Apps Script. Open the file in Google Sheets and choose `File > Save as Google Sheets`, then use the new native Sheet URL.
 
+### Which URLs To Paste
+
+The app has two different Google URL fields. Fill both to sync, or leave both blank to only download the workbook.
+
+Use this in `Native Google Sheet URL or ID`:
+
+```text
+https://docs.google.com/spreadsheets/d/<SHEET_ID>/edit...
+```
+
+This must be a native Google Sheet. If the file name still ends in `.xlsx`, or Google says it is an Office file, open it in Sheets and choose `File > Save as Google Sheets`. Then copy the URL of the newly created Google Sheet.
+
+Use this in `Apps Script Web App URL`:
+
+```text
+https://script.google.com/macros/s/<DEPLOYMENT_ID>/exec
+```
+
+Do not paste the Sheet URL into the Apps Script field. Do not paste the Apps Script URL into the Sheet field.
+
 ### One-Time Setup
 
 1. Open the target Google Sheet.
@@ -149,8 +169,9 @@ google_apps_script/Code.gs
 4. Deploy it as a web app.
 5. Set it to execute as you.
 6. Copy the deployed web app URL.
-7. Paste that URL into the app's `Apps Script Web App URL` field.
-8. Paste the Google Sheet URL or ID into the app's `Google Sheet URL or ID` field.
+7. Confirm the deployed URL ends in `/exec`.
+8. Paste that URL into the app's `Apps Script Web App URL` field.
+9. Paste the native Google Sheet URL or ID into the app's `Native Google Sheet URL or ID` field.
 
 Keep the Apps Script web app URL private because it can update any spreadsheet ID you pass to it.
 
