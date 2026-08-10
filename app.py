@@ -200,8 +200,8 @@ def index():
           </label>
           <label class="drop">
             <strong>Wise transaction history</strong>
-            <span class="hint">Drop the Wise file here: CSV or Excel export from Wise</span>
-            <input required type="file" name="wise" accept=".csv,.xls,.xlsx">
+            <span class="hint">Optional. Drop the Wise file here if you used Wise this month.</span>
+            <input type="file" name="wise" accept=".csv,.xls,.xlsx">
             <span class="file-name" data-for="wise">No file selected</span>
           </label>
           <label class="drop wide">
@@ -291,6 +291,12 @@ def index():
 
     form.addEventListener('submit', async (event) => {
       event.preventDefault();
+      if (!form.elements.abn.files.length) {
+        result.innerHTML = '<p class="bad">Please add the ABN AMRO export before generating the review.</p>';
+        result.classList.add('show');
+        status.textContent = 'Needs attention';
+        return;
+      }
       button.disabled = true;
       status.textContent = 'Working...';
       result.classList.remove('show');
@@ -332,14 +338,19 @@ def generate():
     upload_dir.mkdir(parents=True, exist_ok=True)
 
     try:
-        abn_file = request.files["abn"]
-        wise_file = request.files["wise"]
+        abn_file = request.files.get("abn")
+        wise_file = request.files.get("wise")
         template_file = request.files.get("template")
+        if not abn_file or not abn_file.filename:
+            raise ValueError("Please add the ABN AMRO export before generating the review.")
 
         abn_path = upload_dir / secure_filename(abn_file.filename)
-        wise_path = upload_dir / secure_filename(wise_file.filename)
         abn_file.save(abn_path)
-        wise_file.save(wise_path)
+
+        wise_path = None
+        if wise_file and wise_file.filename:
+            wise_path = upload_dir / secure_filename(wise_file.filename)
+            wise_file.save(wise_path)
 
         template_path = None
         if template_file and template_file.filename:
@@ -353,7 +364,9 @@ def generate():
             date.fromisoformat(request.form["through"]),
         )
 
-        rows = read_abn(abn_path, period) + read_wise(wise_path, period)
+        rows = read_abn(abn_path, period)
+        if wise_path:
+            rows += read_wise(wise_path, period)
         rows.sort(key=lambda row: (row["date"], row["source"], row["source_id"]))
 
         output_path = run_dir / f"budget_review_{secure_filename(period.name).replace(' ', '_')}.xlsx"

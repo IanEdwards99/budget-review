@@ -33,8 +33,8 @@ chmod +x start_macos_linux.sh
 
 Supported files:
 
-- ABN AMRO export: `.xls` or `.xlsx`
-- Wise transaction history: `.csv`, `.xls`, or `.xlsx`
+- ABN AMRO export: `.xls` or `.xlsx` required
+- Wise transaction history: `.csv`, `.xls`, or `.xlsx` optional
 - Optional existing workbook template: `.xlsx`
 
 ABN exports must contain:
@@ -43,7 +43,7 @@ ABN exports must contain:
 - `amount`
 - `description`
 
-Wise exports must keep Wise's default column names, including:
+If you include a Wise file, it must keep Wise's default column names, including:
 
 - `Created on`
 - `Finished on`
@@ -55,10 +55,10 @@ Wise exports must keep Wise's default column names, including:
 ## Monthly Workflow
 
 1. Export ABN AMRO transactions for the review period.
-2. Export Wise transaction history for the review period.
+2. Export Wise transaction history for the review period, if you used Wise that month.
 3. Start the app.
 4. Drop the ABN file into `ABN AMRO export`.
-5. Drop the Wise file into `Wise transaction history`.
+5. Optionally drop the Wise file into `Wise transaction history`.
 6. Optionally drop an existing `.xlsx` workbook as a template.
 7. Set:
    - period label, for example `July 2026`
