@@ -9,6 +9,8 @@ The intended user flow is:
 3. Drag the files in.
 4. Download the generated workbook, create a new Google Sheet, or sync selected tabs into an existing Google Sheet.
 
+Future improvements are tracked in `ROADMAP.md`.
+
 ## Quick Start
 
 ### Windows
